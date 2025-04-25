@@ -101,6 +101,8 @@ Resume-fy is a full-stack web application designed to help job seekers optimize 
 - Firestore database
 - React/NextJS frontend
 - Google Authentication
+- Tailwind CSS for styling
+- shadcn/ui component library
 - LangChain JS for AI integration (Gemini 2.5 Pro Experimental)
 - LangGraph JS for agent workflows
 - Zod for schema validation
