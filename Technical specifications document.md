@@ -218,7 +218,7 @@ src/
 │   ├── profile/          # Profile management
 │   └── jobs/             # Job analysis
 ├── components/           # Shared components
-│   ├── ui/               # UI components
+│   ├── ui/               # UI components (shadcn/ui components)
 │   ├── layout/           # Layout components
 │   ├── forms/            # Form components
 │   └── features/         # Feature-specific components
@@ -243,6 +243,14 @@ src/
 - Use React Context API for global state
 - React Query for server state management and caching
 - Zod for form validation and type safety
+
+### UI Component Library
+
+- **shadcn/ui**: Used for pre-built, accessible components
+  - Implementation of robust, reusable UI components based on Radix UI
+  - Fully customizable via Tailwind CSS
+  - Maintains consistent design system with accessibility built-in
+- **Tailwind CSS**: Core styling framework for custom components and layouts
 
 ## AI Integration (LangChain JS & LangGraph JS)
 
