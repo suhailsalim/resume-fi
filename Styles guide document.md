@@ -108,7 +108,7 @@ Follow an 8-point grid system:
 
 ### Components
 
-#### Buttons
+#### Buttons (shadcn/ui implementation)
 
 ##### Primary Button
 
@@ -118,6 +118,7 @@ Follow an 8-point grid system:
 - Padding: 12px 24px
 - Border Radius: 8px
 - Font Weight: Semi-bold
+- shadcn/ui variant: `default`
 
 ##### Secondary Button
 
@@ -128,6 +129,7 @@ Follow an 8-point grid system:
 - Padding: 12px 24px
 - Border Radius: 8px
 - Font Weight: Semi-bold
+- shadcn/ui variant: `outline`
 
 ##### Tertiary Button / Text Button
 
@@ -137,12 +139,14 @@ Follow an 8-point grid system:
 - Padding: 12px 24px
 - Border Radius: 8px
 - Font Weight: Medium
+- shadcn/ui variant: `ghost`
 
 ##### Disabled Button
 
 - Background: Light Gray (#F3F4F6)
 - Text: Medium Gray (#6B7280)
 - Cursor: Not allowed
+- Applied via disabled prop in shadcn/ui Button
 
 #### Form Elements
 
@@ -308,9 +312,10 @@ Use a consistent icon set - Recommended: [Heroicons](https://heroicons.com/) or 
 
 ### CSS Architecture
 
-- Use CSS modules or styled components
-- Follow BEM naming convention
-- Create reusable utility classes for common patterns
+- Use Tailwind CSS for utility-first styling
+- Implement shadcn/ui components for complex UI elements
+- Follow component-based architecture
+- Create reusable component compositions for common patterns
 
 ### Design Token Implementation
 
