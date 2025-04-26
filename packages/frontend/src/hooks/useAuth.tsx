@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
-import { auth, signInWithGoogle, logOut } from '@/lib/firebase';
+import { auth, signInWithGoogle, logOut } from '@/lib/firebase-auth';
 import { useRouter } from 'next/navigation';
 
 interface User {
@@ -17,6 +17,7 @@ interface AuthContextType {
   loading: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -64,7 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, signInWithGoogle }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,7 +1,6 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth';
+// Core Firebase configuration file (works in both server and client components)
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import api from '@/services/api';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,47 +11,8 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+// Initialize Firebase
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
-const googleProvider = new GoogleAuthProvider();
 
-async function signInWithGoogle() {
-  try {
-    const result = await signInWithPopup(auth, googleProvider);
-    const idToken = await result.user.getIdToken();
-    
-    // Send token to backend to get our JWT
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/google/callback`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ idToken }),
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Authentication failed: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    api.login({ token: data.access_token });
-    
-    return { user: result.user, token: data.access_token };
-  } catch (error) {
-    console.error('Error signing in with Google:', error);
-    throw error;
-  }
-}
-
-async function logOut() {
-  try {
-    await signOut(auth);
-    api.logout();
-  } catch (error) {
-    console.error('Error logging out:', error);
-    throw error;
-  }
-}
-
-export { auth, db, signInWithGoogle, logOut };
+export { app, db };
