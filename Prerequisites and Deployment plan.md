@@ -39,7 +39,7 @@
 
 #### Backend (NestJS)
 
-```
+```ini
 # Firebase Admin SDK
 FIREBASE_PROJECT_ID=your-project-id
 FIREBASE_PRIVATE_KEY=your-private-key
@@ -59,7 +59,7 @@ PORT=3001
 
 #### Frontend (Next.js)
 
-```
+```ini
 # Firebase Client Config
 NEXT_PUBLIC_FIREBASE_API_KEY=your-firebase-api-key
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-firebase-auth-domain
@@ -74,7 +74,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 
 ## Repository Structure
 
-```
+```plaintext
 resume-fy/
 ├── .github/
 │   └── workflows/
@@ -304,7 +304,7 @@ jobs:
 
 ### Infrastructure
 
-```
+```plaintext
 ┌───────────────────────────────────────┐
 │                                       │
 │         Vercel (Frontend)             │
