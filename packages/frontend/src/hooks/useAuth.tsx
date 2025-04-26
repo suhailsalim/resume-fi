@@ -1,9 +1,15 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User as FirebaseUser } from 'firebase/auth';
-import { auth, signInWithGoogle, logOut } from '@/lib/firebase-auth';
-import { useRouter } from 'next/navigation';
+import { auth, logOut, signInWithGoogle } from "@/lib/firebase-auth";
+import { User as FirebaseUser } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 interface User {
   id: string;
@@ -17,7 +23,10 @@ interface AuthContextType {
   loading: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: () => Promise<{
+    user: FirebaseUser;
+    token: any;
+  }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,8 +41,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (firebaseUser) {
         const userData: User = {
           id: firebaseUser.uid,
-          email: firebaseUser.email || '',
-          displayName: firebaseUser.displayName || '',
+          email: firebaseUser.email || "",
+          displayName: firebaseUser.displayName || "",
           photoURL: firebaseUser.photoURL || undefined,
         };
         setUser(userData);
@@ -49,23 +58,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async () => {
     try {
       await signInWithGoogle();
-      router.push('/dashboard');
+      router.push("/dashboard");
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
     }
   };
 
   const logout = async () => {
     try {
       await logOut();
-      router.push('/');
+      router.push("/");
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, signInWithGoogle }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, logout, signInWithGoogle }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -74,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
