@@ -31,6 +31,10 @@ async function signInWithGoogle() {
       body: JSON.stringify({ idToken }),
     });
     
+    if (!response.ok) {
+      throw new Error(`Authentication failed: ${response.statusText}`);
+    }
+    
     const data = await response.json();
     api.login({ token: data.access_token });
     
