@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { LangchainService } from './modules/langchain/langchain.service';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
@@ -29,6 +30,11 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
+
+  // Initialize Langchain service
+  const langchainService = app.get(LangchainService);
+  await langchainService.init();
+
   
   // Prefix for all routes
   app.setGlobalPrefix('api');
@@ -39,4 +45,7 @@ async function bootstrap() {
   console.log(`Application is running on: http://localhost:${port}`);
 }
 
-bootstrap();
+async function main(){
+    await bootstrap();
+}
+main();

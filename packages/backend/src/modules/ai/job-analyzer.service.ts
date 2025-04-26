@@ -1,13 +1,17 @@
 import { Injectable } from '@nestjs/common';
+import { ChatPromptTemplate, HumanMessagePromptTemplate, SystemMessagePromptTemplate } from 'langchain/prompts';
 import { AiService } from './ai.service';
 import { Profile, JobAnalysis } from '@resume-fi/shared';
 
 @Injectable()
 export class JobAnalyzerService {
-  constructor(private aiService: AiService) {}
+  constructor(private aiService: AiService) { }
 
   async analyzeJobMatch(jobDescription: string, profile: Profile): Promise<JobAnalysis> {
-    const prompt = `
+    const chatPrompt = ChatPromptTemplate.fromPromptMessages([
+      SystemMessagePromptTemplate.fromTemplate(
+        `
+        You are a professional job compatibility analyzer. Analyze the match between the candidate's profile and the job description.
       You are a professional job compatibility analyzer. Analyze the match between the candidate's profile and the job description.
       
       Job Description:\n${jobDescription}\n\n
@@ -29,21 +33,27 @@ export class JobAnalyzerService {
         gaps: string[];
         upskillingSuggestions: string[];
       }
-    `;
-
-    const aiResponse = await this.aiService.generateText(prompt);
-    
-    try {
-      // Extract JSON from the response
-      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('No valid JSON found in AI response');
-      }
+    `),
+      HumanMessagePromptTemplate.fromTemplate(
+        `
+        Job Description:\n{jobDescription}\n\n
+        Candidate Profile:\n{profile}\n\n
+        Provide a detailed analysis with the following:
       
-      return JSON.parse(jsonMatch[0]) as JobAnalysis;
+      1. Match Score: A percentage (0-100) indicating overall compatibility
+      2. Strengths: List key strengths that align with the job requirements
+      3. Weaknesses: List areas where the candidate may fall short
+      4. Gaps: Identify specific skills or experiences missing
+      5. Upskilling Suggestions: Recommend specific learning paths to close gaps`
+      ),
+    ]);
+
+    const response = await this.aiService.generateContent(chatPrompt, { profile: JSON.stringify(profile, null, 2), jobDescription });
+    try {
+      return JSON.parse(response) as JobAnalysis;
     } catch (error) {
-      console.error('Error analyzing job match:', error);
-      throw new Error('Failed to analyze job match');
+      console.error('Error during analyze the job response', error);
+      throw new Error('Failed to generate AI response');
     }
   }
 }

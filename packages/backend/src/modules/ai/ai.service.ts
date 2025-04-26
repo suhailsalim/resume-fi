@@ -1,27 +1,49 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Injectable, Inject } from '@nestjs/common';
+import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
+import { StructuredOutputParser } from 'langchain/output_parsers';
+import { ChatPromptTemplate, ChatMessagePromptTemplate } from "@langchain/core/prompts";
+import { z } from 'zod';
 
-@Injectable()
-export class AiService {
-  private genAI: GoogleGenerativeAI;
-  private model: any;
+import { LangchainService } from '../langchain/langchain.service';
+  @Injectable()
+  export class AiService {
+    constructor(@Inject(LangchainService) private readonly langchainService: LangchainService) {}
+  
+    /**
+     * Generate structured output based on a given prompt and schema.
+     * @param prompt The user's prompt.
+     * @param schema The schema for the structured output.
+     * @returns A Promise that resolves to the structured output.
+     */
+    async generateStructuredOutput<T extends z.ZodTypeAny>(chatPromptTemplate: ChatPromptTemplate, schema: T): Promise<z.infer<T>> {
+      const parser = StructuredOutputParser.fromZodSchema(schema);
+      const chatModel = this.langchainService.getChatModel();
+      const formatInstructions = parser.getFormatInstructions();
+  
+      const chatPrompt = chatPromptTemplate;
+      const prompt = await chatPrompt.getPrompt().format({});
 
-  constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('GOOGLE_AI_API_KEY');
-    this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
-  }
-
-  async generateText(prompt: string, context?: string): Promise<string> {
-    try {
-      const fullPrompt = context ? `${context}\n\n${prompt}` : prompt;
-      const result = await this.model.generateContent(fullPrompt);
-      const response = result.response;
-      return response.text();
-    } catch (error) {
-      console.error('Error generating AI response:', error);
-      throw new Error('Failed to generate AI response');
+      const messages = await chatPrompt.formatPromptValue({
+        format_instructions: formatInstructions,
+        prompt: prompt,
+      }).toChatMessages();
+  
+      const result = await chatModel.invoke(messages);
+      const parsedResult = await parser.parse(result.content);
+      return parsedResult;
+    }
+  
+    /**
+     * Generate content based on a prompt and optional context.
+     * @param prompt The user's prompt.
+     * @param context Optional context for the model.
+     * @returns A Promise that resolves to the model's content.
+     */
+    async generateContent(chatPromptTemplate: ChatPromptTemplate, context?: string): Promise<string> {
+      const chatModel = this.langchainService.getChatModel();
+      const result = await chatPromptTemplate.formatPromptValue({context}).toChatMessages();
+      const resultModel = await chatModel.invoke(result);
+      return result.content;
     }
   }
-}
+

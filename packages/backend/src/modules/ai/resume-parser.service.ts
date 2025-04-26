@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { AiService } from './ai.service';
-import { Profile } from '@resume-fi/shared';
+import { Profile } from '@resume-fi/shared/src/types';
+import { ChatPromptTemplate, HumanMessagePromptTemplate } from 'langchain/prompts';
+import { z } from 'zod';
 
 @Injectable()
 export class ResumeParserService {
@@ -8,91 +10,90 @@ export class ResumeParserService {
 
   async parseResume(resumeText: string): Promise<Partial<Profile>> {
     const prompt = `
-      You are a professional resume parser. Extract the following information from the resume text in a structured format:
-      
-      1. Personal Information (name, contact details, location, etc.)
-      2. Professional Summary
-      3. Skills (with a rating from 1-5 based on emphasis in the resume)
-      4. Work Experience (company, title, dates, responsibilities)
-      5. Projects (name, description, technologies used)
-      6. Education (institutions, degrees, dates)
-      7. Certifications
-      8. Awards and Achievements
-      
-      Format the output as a valid JSON object that matches this TypeScript type:
-      
-      interface Profile {
-        personalInfo: {
-          fullName: string;
-          phone?: string;
-          email: string;
-          location?: string;
-          socials: {
-            linkedin?: string;
-            github?: string;
-            portfolio?: string;
-            twitter?: string;
-          };
-          summary?: string;
-        };
-        skills: Array<{
-          name: string;
-          rating: number; // 1-5
-          category?: string;
-        }>;
-        experience: Array<{
-          title: string;
-          company: string;
-          location?: string;
-          startDate: string; // ISO format date
-          endDate?: string; // ISO format date
-          current: boolean;
-          description: string;
-        }>;
-        projects: Array<{
-          name: string;
-          description: string;
-          technologies: string[];
-          url?: string;
-          startDate?: string; // ISO format date
-          endDate?: string; // ISO format date
-        }>;
-        education: Array<{
-          institution: string;
-          degree: string;
-          field: string;
-          startDate: string; // ISO format date
-          endDate?: string; // ISO format date
-          gpa?: number;
-        }>;
-        certifications: Array<{
-          name: string;
-          issuer: string;
-          date: string; // ISO format date
-          url?: string;
-        }>;
-        awards: Array<{
-          title: string;
-          issuer: string;
-          date: string; // ISO format date
-          description?: string;
-        }>;
-      }
-      
-      Resume text to parse:\n${resumeText}
-    `;
-
-    const aiResponse = await this.aiService.generateText(prompt);
+    You are a professional resume parser. Extract the following information from the resume text in a structured format:
     
+    1. Personal Information (name, contact details, location, etc.)
+    2. Professional Summary
+    3. Skills (with a rating from 1-5 based on emphasis in the resume)
+    4. Work Experience (company, title, dates, responsibilities)
+    5. Projects (name, description, technologies used)
+    6. Education (institutions, degrees, dates)
+    7. Certifications
+    8. Awards and Achievements
+    
+    Format the output as a valid JSON object that matches this TypeScript type:
+    
+    interface Profile {
+      personalInfo: {
+        fullName: string;
+        phone?: string;
+        email: string;
+        location?: string;
+        socials: {
+          linkedin?: string;
+          github?: string;
+          portfolio?: string;
+          twitter?: string;
+        };
+        summary?: string;
+      };
+      skills: Array<{
+        name: string;
+        rating: number; // 1-5
+        category?: string;
+      }>;
+      experience: Array<{
+        title: string;
+        company: string;
+        location?: string;
+        startDate: string; // ISO format date
+        endDate?: string; // ISO format date
+        current: boolean;
+        description: string;
+      }>;
+      projects: Array<{
+        name: string;
+        description: string;
+        technologies: string[];
+        url?: string;
+        startDate?: string; // ISO format date
+        endDate?: string; // ISO format date
+      }>;
+      education: Array<{
+        institution: string;
+        degree: string;
+        field: string;
+        startDate: string; // ISO format date
+        endDate?: string; // ISO format date
+        gpa?: number;
+      }>;
+      certifications: Array<{
+        name: string;
+        issuer: string;
+        date: string; // ISO format date
+        url?: string;
+      }>;
+      awards: Array<{
+        title: string;
+        issuer: string;
+        date: string; // ISO format date
+        description?: string;
+      }>;
+    }
+    
+    Resume text to parse:`;
+
+    const promptTemplate = ChatPromptTemplate.fromPromptMessages([
+      HumanMessagePromptTemplate.fromTemplate(`${prompt}\n{resumeText}`),
+    ]);
+
+    const schema = z.object({});
+
+    const aiResponse = await this.aiService.generateStructuredOutput(promptTemplate, schema, { resumeText });
+
     try {
       // Extract JSON from the response
-      const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) {
-        throw new Error('No valid JSON found in AI response');
-      }
-      
-      const parsedProfile = JSON.parse(jsonMatch[0]);
-      return this.convertDatesToObjects(parsedProfile);
+      return this.convertDatesToObjects(aiResponse as any);
     } catch (error) {
       console.error('Error parsing resume:', error);
       throw new Error('Failed to parse resume');

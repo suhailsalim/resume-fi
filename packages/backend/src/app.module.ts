@@ -5,6 +5,7 @@ import { UsersModule } from './modules/users/users.module';
 import { JobsModule } from './modules/jobs/jobs.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { AiModule } from './modules/ai/ai.module';
+import { LangchainModule } from './modules/langchain/langchain.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AiModule } from './modules/ai/ai.module';
     JobsModule,
     ChatModule,
     AiModule,
+    LangchainModule,
   ],
   controllers: [],
   providers: [],
